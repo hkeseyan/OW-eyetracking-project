@@ -1,0 +1,92 @@
+---
+title: "Plot_OW_XYgaze"
+author: "Hovanes Keseyan"
+date: "June 2, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Set up data import/cleanup function, and plotting function
+
+```{r }
+myfun <- function(f) {
+  # Import
+  data <- read.csv(f)
+  xy <- matrix(c(data$X.Gaze.Data, data$Y.Gaze.Data), ncol = 2)
+  xy <- xy[xy[,1]>0,]     # remove rows where x is less than 0
+  xy <- xy[xy[,1]<2100,] # remove rows where x is greater than 2100
+  xy <- xy[xy[,2]>-50,]     # remove rows where y is less than -50
+  xy <- xy[xy[,2]<1080,] # remove rows where x is greater than 1080
+  x<-xy[,1]
+  y<-xy[,2]
+  
+  y<- -y  # invert y values
+  
+  #Normalize
+  
+  x <- x/(max(x) - min(x))*100
+  xcenter <- (max(x) - min(x))/2 + min(x)
+  x <- x - xcenter
+  #summary(x)
+  
+  y <- y/(max(y) - min(y))*100
+  ycenter <- (max(y) - min(y))/2 + min(y)
+  y <- y - ycenter
+  #summary(y)
+  
+  # Divide data into sections of the screen
+  
+  cb <- 10 # center region boundary
+  
+  TL <- sum(x<=-cb&y>=cb)
+  TC <- sum(x>=-cb&x<=cb&y>=cb)
+  TR <- sum(x>=cb&y>=cb)
+  CL <- sum(x<=-cb&y>=-cb&y<=cb)
+  CC <- sum(x>=-cb&x<=cb&y>=-cb&y<=cb)
+  CR <- sum(x>=cb&y>=-cb&y<=cb)
+  BL <- sum(x<=-cb&y<=-cb)
+  BC <- sum(x>=-cb&x<=cb&y<=-cb)
+  BR <- sum(x>=cb&y<=-cb)
+  
+  grid <- matrix(c(TL,CL,BL,TC,CC,BC,TR,CR,BR), 3, 3)
+  gridpct <- grid/sum(grid)
+  
+  # Plots
+  
+  #library(matlab)
+  #imagesc(grid)
+  
+  library(ggplot2)
+  df <- data.frame(grid)
+  colnames(df) <- c('LEFT','CENTER','RIGHT')
+  library(reshape2)
+  library(colorRamps)
+  df$row <- c('TOP', 'CENTER', 'BOTTOM')
+  df <- melt(df)
+  myplot <- ggplot(data=df,
+         aes(x=variable, y=row, fill=value)) + geom_tile() + 
+         geom_text(aes(label=value), color='white') + theme_bw() +
+         theme(axis.title.x=element_blank(), axis.title.y=element_blank()) + scale_fill_gradientn(colours=matlab.like(3)) + ggtitle(f)
+  
+  #hist(x)
+  #hist(y)
+  #plot(x,y)
+  print(myplot)
+  return(gridpct)
+}
+```
+
+## Import files and run plots
+
+```{r message = FALSE}
+folder <- "C:/Users/Hovanes/Desktop/outputfiles/"      # path to folder that holds multiple .csv files
+setwd(folder)
+file_list <- list.files(path=folder, pattern="*.csv") # create list of all .csv files in folder
+
+# read in each .csv file in file_list and create a data frame with the same name as the .csv file
+for (i in 1:length(file_list)){
+  f <- file_list[i]
+  gridpct <- myfun(f)
+}
+```

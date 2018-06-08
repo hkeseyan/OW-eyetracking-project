@@ -1,0 +1,86 @@
+---
+title: "Plot_OW_XYgaze"
+author: "Hovanes Keseyan"
+date: "June 2, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Import
+
+```{r }
+data <- read.csv("C:/Users/Hovanes/Desktop/outputfiles/Junkrat many games.csv")
+xy <- matrix(c(data$X.Gaze.Data, data$Y.Gaze.Data), ncol = 2)
+x<-xy[,1]
+y<-xy[,2]
+```
+
+## Bins
+
+```{r }
+x<-x>0
+xcenter <- (max(x) - min(x))/2 + min(x)
+xcenter
+x_bin_size <- (max(x) - min(x))/3
+min(x)
+max(x)
+xbinhi <- seq(1,3)*x_bin_size + min(x)
+xbinhi
+xbinlo <- (seq(1,3)-1)*x_bin_size + min(x)
+xbinlo
+
+ycenter <- (max(y) - min(y))/2 + min(y)
+ycenter
+y_bin_size <- (max(y) - min(y))/3
+min(y)
+max(y)
+ybinhi <- seq(1,3)*y_bin_size + min(y)
+ybinhi
+ybinlo <- (seq(1,3)-1)*y_bin_size + min(y)
+ybinlo
+
+TL <- sum(x>=xbinlo[1]&x<=xbinhi[1]&y>=ybinlo[3]&y<=ybinhi[3])
+TL
+TC <- sum(x>=xbinlo[2]&x<=xbinhi[2]&y>=ybinlo[3]&y<=ybinhi[3])
+TC
+TR <- sum(x>=xbinlo[3]&x<=xbinhi[3]&y>=ybinlo[3]&y<=ybinhi[3])
+TR
+CL <- sum(x>=xbinlo[1]&x<=xbinhi[1]&y>=ybinlo[2]&y<=ybinhi[2])
+CL
+CC <- sum(x>=xbinlo[2]&x<=xbinhi[2]&y>=ybinlo[2]&y<=ybinhi[2])
+CC
+CR <- sum(x>=xbinlo[3]&x<=xbinhi[3]&y>=ybinlo[2]&y<=ybinhi[2])
+CR
+BL <- sum(x>=xbinlo[1]&x<=xbinhi[1]&y>=ybinlo[1]&y<=ybinhi[1])
+BL
+BC <- sum(x>=xbinlo[2]&x<=xbinhi[2]&y>=ybinlo[1]&y<=ybinhi[1])
+BC
+BR <- sum(x>=xbinlo[3]&x<=xbinhi[3]&y>=ybinlo[1]&y<=ybinhi[1])
+BR
+
+secs <- matrix(c(TL,CL,BL,TC,CC,BC,TR,CR,BR), 3, 3)
+secs
+heatmap(secs, Colv = NA, Rowv = NA)
+
+library(binr)
+xbins<-bins(x,3, minpts=1)
+xbins$binct
+plot(xbins$binct)
+ybins<-bins(y,3, minpts=1)
+ybins$binct
+plot(ybins$binct)
+xybins<-matrix(c(xbins$binct,ybins$binct), ncol=2)
+heatmap(xybins)
+```
+
+
+## Plots
+
+```{r }
+hist(x)
+hist(y)
+plot(x,y)
+```
+
+
